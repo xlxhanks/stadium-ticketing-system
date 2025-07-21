@@ -34,7 +34,7 @@ if (session_status() === PHP_SESSION_NONE) {
             </ul>
             <?php if (isset($_SESSION['user'])): ?>
                 <span class="navbar-text me-2">Hi, <?= htmlspecialchars($_SESSION['user']['name']); ?>!</span>
-                <a href="../auth/logout.php" class="btn btn-light btn-sm">Logout</a>
+                <a href="../logout.php" class="btn btn-light btn-sm">Logout</a>
             <?php endif; ?>
         </div>
     </div>
