@@ -1,24 +1,23 @@
 <?php
 session_start();
-include '../root/db_connect.php';
+include __DIR__ . '/../root/db_connect.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = htmlspecialchars(trim($_POST['email']));
     $password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    try {
+        $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($row = $result->fetch_assoc()) {
-        if (password_verify($password, $row['password'])) {
-            $_SESSION['user'] = $row;
+        if ($user && password_verify($password, $user['password'])) {
+            $_SESSION['user'] = $user;
 
-            if ($row['role'] === 'admin') {
-                header('Location: ../admin/manage_events.php');
+            if ($user['role'] === 'admin') {
+                header('Location: ../admin/admin_dashboard.php');
             } else {
-                header('Location: ../user/dashboard.php');
+                header('Location: ../user/user_dashboard.php');
             }
             exit();
         } else {
@@ -26,23 +25,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             header('Location: login.php');
             exit();
         }
-    } else {
-        $_SESSION['error'] = "User not found!";
+    } catch (PDOException $e) {
+        $_SESSION['error'] = "Error: " . $e->getMessage();
         header('Location: login.php');
         exit();
     }
 }
 ?>
 
-<!-- Simple Login Form -->
- <?php
+<!-- Login Form -->
+<h2>Login</h2>
+<?php
 if (isset($_SESSION['error'])) {
     echo '<p style="color:red;">' . $_SESSION['error'] . '</p>';
     unset($_SESSION['error']);
 }
 ?>
-
-<h2>Login</h2>
 <form action="login.php" method="POST">
     <input type="email" name="email" placeholder="Email Address" required><br>
     <input type="password" name="password" placeholder="Password" required><br>

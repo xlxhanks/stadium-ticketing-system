@@ -1,11 +1,10 @@
 <?php
 session_start();
-include '../root/db_connect.php';
+include __DIR__ . '/../root/db_connect.php';
 include '../root/navbar.php';
 
-// Allow only admin users
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
-    header('Location: login.php');
+    header('Location: ../auth/login.php');
     exit();
 }
 
@@ -13,31 +12,43 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $title = htmlspecialchars(trim($_POST['title']));
     $description = htmlspecialchars(trim($_POST['description']));
-    $event_date = $_POST['event_date'];
-    $venue = htmlspecialchars(trim($_POST['venue']));
-    $tickets = (int) $_POST['tickets'];
+    $event_date = $_POST['event_date']; // Will go into `date` column
     $price = (float) $_POST['price'];
-    $category = htmlspecialchars(trim($_POST['category']));
+    $tickets = (int) $_POST['tickets'];
 
-    $stmt = $conn->prepare("INSERT INTO events (title, description, event_date, venue, tickets_available, price_per_ticket, category) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssiis", $title, $description, $event_date, $venue, $tickets, $price, $category);
+    try {
+        $stmt = $conn->prepare("INSERT INTO events (title, description, date, price_per_ticket, tickets_available, status) VALUES (?, ?, ?, ?, ?, 'active')");
+        $stmt->execute([$title, $description, $event_date, $price, $tickets]);
 
-    if ($stmt->execute()) {
-        echo "Event added successfully!";
-    } else {
-        echo "Error: " . $stmt->error;
+        $_SESSION['success'] = "Event added successfully!";
+        header('Location: manage_events.php');
+        exit();
+    } catch (PDOException $e) {
+        echo "Error adding event: " . $e->getMessage();
+        exit();
     }
 }
 ?>
 
-<h2>Add New Event (Admin Only)</h2>
-<form action="add_event.php" method="POST">
-    <input type="text" name="title" placeholder="Event Title" required><br>
-    <textarea name="description" placeholder="Event Description"></textarea><br>
-    <input type="date" name="event_date" required><br>
-    <input type="text" name="venue" placeholder="Venue" required><br>
-    <input type="number" name="tickets" placeholder="Tickets Available" required><br>
-    <input type="number" step="0.01" name="price" placeholder="Price per Ticket" required><br>
-    <input type="text" name="category" placeholder="Category" required><br>
+<h2>Add New Event</h2>
+
+<?php
+if (isset($_SESSION['success'])) {
+    echo '<p style="color:green;">' . $_SESSION['success'] . '</p>';
+    unset($_SESSION['success']);
+}
+?>
+
+<form method="POST" action="">
+    <input type="text" name="title" placeholder="Event Title" required><br><br>
+
+    <textarea name="description" placeholder="Description" required></textarea><br><br>
+
+    <input type="datetime-local" name="event_date" required><br><br>
+
+    <input type="number" name="price" step="0.01" placeholder="Price per Ticket (USD)" required><br><br>
+
+    <input type="number" name="tickets" placeholder="Total Tickets Available" required><br><br>
+
     <button type="submit">Add Event</button>
 </form>

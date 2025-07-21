@@ -1,29 +1,50 @@
 <?php
 session_start();
-include '../root/db_connect.php';
+include __DIR__ . '/../root/db_connect.php';
 include '../root/navbar.php';
 
-
-// Optional: Restrict to logged-in users
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
+if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'user') {
+    header('Location: ../auth/login.php');
     exit();
 }
 
-$result = $conn->query("SELECT * FROM events WHERE status = 'open' ORDER BY event_date ASC");
+// Fetch active events
+try {
+    $stmt = $conn->query("SELECT * FROM events WHERE status = 'active' ORDER BY date DESC");
+    $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    echo "Error fetching events: " . $e->getMessage();
+    exit();
+}
 ?>
 
 <h2>Available Events</h2>
 
-<?php while ($row = $result->fetch_assoc()) : ?>
-    <div style="border:1px solid #ccc; padding:10px; margin:10px;">
-        <h3><?php echo htmlspecialchars($row['title']); ?></h3>
-        <p><?php echo htmlspecialchars($row['description']); ?></p>
-        <p><strong>Date:</strong> <?php echo $row['event_date']; ?></p>
-        <p><strong>Venue:</strong> <?php echo htmlspecialchars($row['venue']); ?></p>
-        <p><strong>Tickets Available:</strong> <?php echo $row['tickets_available']; ?></p>
-        <p><strong>Price per Ticket:</strong> $<?php echo $row['price_per_ticket']; ?></p>
-        <p><strong>Category:</strong> <?php echo htmlspecialchars($row['category']); ?></p>
-        <a href="book_ticket.php?event_id=<?php echo $row['id']; ?>">Book a Seat</a>
-    </div>
-<?php endwhile; ?>
+<?php if (count($events) > 0): ?>
+    <table border="1">
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Date</th>
+            <th>Price</th>
+            <th>Tickets Available</th>
+            <th>Action</th>
+        </tr>
+        <?php foreach ($events as $event): ?>
+            <tr>
+                <td><?= htmlspecialchars($event['title']); ?></td>
+                <td><?= htmlspecialchars($event['description']); ?></td>
+                <td><?= htmlspecialchars($event['date']); ?></td>
+                <td>$<?= number_format($event['price_per_ticket'], 2); ?></td>
+                <td><?= (int)$event['tickets_available']; ?></td>
+                <td>
+                    <a href="book_tickets.php?event_id=<?= $event['id']; ?>">
+                        <button>Book Now</button>
+                    </a>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+<?php else: ?>
+    <p>No active events available.</p>
+<?php endif; ?>

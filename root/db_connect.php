@@ -2,16 +2,16 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-$host = '127.0.0.1';
-$db   = 'stadium_ticketing';
-$user = 'root';
-$pass = 'Litusir1.';
+include __DIR__ . '/config.php';
 
-$conn = new mysqli($host, $user, $pass, $db);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-} else {
-   // echo "Connection successful!";
+try {
+    $conn = new PDO(
+        "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME,
+        DB_USER,
+        DB_PASS
+    );
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("PDO Connection failed: " . $e->getMessage());
 }
 ?>

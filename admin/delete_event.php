@@ -1,6 +1,7 @@
 <?php
 session_start();
-include '../root/db_connect.php';
+include __DIR__ . '/../root/db_connect.php';
+
 include '../root/navbar.php';
 
 // Only admin can access

@@ -1,33 +1,31 @@
 <?php
 session_start();
-include '../root/db_connect.php';
+include __DIR__ . '/../root/db_connect.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = htmlspecialchars(trim($_POST['name']));
     $email = htmlspecialchars(trim($_POST['email']));
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-    $role = 'user';  // Default role
+    $role = 'user';
 
-    $stmt = $conn->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("ssss", $name, $email, $password, $role);
+    try {
+        $stmt = $conn->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$name, $email, $password, $role]);
 
-    if ($stmt->execute()) {
         $_SESSION['success'] = "Registration successful! Please login.";
         header('Location: login.php');
         exit();
-    } else {
-        $_SESSION['error'] = "Error: " . $stmt->error;
+
+    } catch (PDOException $e) {
+        $_SESSION['error'] = "Error: " . $e->getMessage();
         header('Location: register.php');
         exit();
     }
 }
 ?>
-
 <!-- Registration Form -->
 <link rel="stylesheet" href="../assets/styles.css">
-
 <h2>Register</h2>
-
 <?php
 if (isset($_SESSION['error'])) {
     echo '<p style="color:red;">' . $_SESSION['error'] . '</p>';
@@ -38,7 +36,6 @@ if (isset($_SESSION['success'])) {
     unset($_SESSION['success']);
 }
 ?>
-
 <form action="register.php" method="POST">
     <input type="text" name="name" placeholder="Full Name" required><br>
     <input type="email" name="email" placeholder="Email Address" required><br>
