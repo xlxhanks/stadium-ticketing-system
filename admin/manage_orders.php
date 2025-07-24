@@ -23,25 +23,61 @@ try {
 }
 ?>
 
-<h2>All Orders</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Orders</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('../assets/manage_orders.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+        }
+        .orders-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            margin: 50px auto;
+            max-width: 900px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
 
-<?php if (count($orders) > 0): ?>
-    <table border="1">
-        <tr>
-            <th>User</th>
-            <th>Total Amount</th>
-            <th>Status</th>
-            <th>Placed On</th>
-        </tr>
-        <?php foreach ($orders as $order): ?>
-            <tr>
-                <td><?= htmlspecialchars($order['username']); ?></td>
-                <td>$<?= number_format($order['total_amount'], 2); ?></td>
-                <td><?= htmlspecialchars($order['status']); ?></td>
-                <td><?= htmlspecialchars($order['created_at']); ?></td>
-            </tr>
-        <?php endforeach; ?>
-    </table>
-<?php else: ?>
-    <p>No orders placed yet.</p>
-<?php endif; ?>
+<div class="orders-container">
+    <h2 class="text-center mb-4">All Orders</h2>
+
+    <?php if (count($orders) > 0): ?>
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>User</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                    <th>Placed On</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($orders as $order): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($order['username']); ?></td>
+                        <td>$<?= number_format($order['total_amount'], 2); ?></td>
+                        <td><?= htmlspecialchars($order['status']); ?></td>
+                        <td><?= htmlspecialchars($order['created_at']); ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php else: ?>
+        <p class="text-center">No orders placed yet.</p>
+    <?php endif; ?>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

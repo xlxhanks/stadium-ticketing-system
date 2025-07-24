@@ -45,27 +45,100 @@ try {
 }
 ?>
 
-<h2>Leave Feedback</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Leave Feedback</title>
+    <style>
+        body {
+            background-image: url('../assets/feedback.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-<?php
-if (isset($_SESSION['success'])) {
-    echo '<p style="color:green;">' . $_SESSION['success'] . '</p>';
-    unset($_SESSION['success']);
-}
-if (isset($_SESSION['error'])) {
-    echo '<p style="color:red;">' . $_SESSION['error'] . '</p>';
-    unset($_SESSION['error']);
-}
-?>
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 10px;
+            width: 400px;
+        }
 
-<form method="POST" action="feedback.php">
-    <label for="event_id">Select Event:</label>
-    <select name="event_id" required>
-        <?php foreach ($events as $event): ?>
-            <option value="<?= $event['id']; ?>"><?= htmlspecialchars($event['title']); ?></option>
-        <?php endforeach; ?>
-    </select><br><br>
+        h2 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
 
-    <textarea name="comment" rows="4" cols="50" placeholder="Your feedback..." required></textarea><br><br>
-    <button type="submit">Submit Feedback</button>
-</form>
+        select, textarea, button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .message {
+            text-align: center;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .message.success {
+            color: green;
+        }
+
+        .message.error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Leave Feedback</h2>
+
+    <?php
+    if (isset($_SESSION['success'])) {
+        echo '<div class="message success">' . htmlspecialchars($_SESSION['success']) . '</div>';
+        unset($_SESSION['success']);
+    }
+    if (isset($_SESSION['error'])) {
+        echo '<div class="message error">' . htmlspecialchars($_SESSION['error']) . '</div>';
+        unset($_SESSION['error']);
+    }
+    ?>
+
+    <form method="POST" action="feedback.php">
+        <label for="event_id">Select Event:</label>
+        <select name="event_id" required>
+            <?php foreach ($events as $event): ?>
+                <option value="<?= $event['id']; ?>"><?= htmlspecialchars($event['title']); ?></option>
+            <?php endforeach; ?>
+        </select>
+
+        <textarea name="comment" rows="4" placeholder="Your feedback..." required></textarea>
+
+        <button type="submit">Submit Feedback</button>
+    </form>
+</div>
+
+</body>
+</html>

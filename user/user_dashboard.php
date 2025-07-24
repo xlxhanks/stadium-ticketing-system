@@ -17,7 +17,46 @@ $role = $_SESSION['user']['role'];
 
 <?php include '../root/navbar.php'; ?>
 
-<div class="container mt-4">
+<!-- Background Style -->
+<style>
+    body {
+        background-image: url('../assets/user_dashboard.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    .container {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 30px;
+        max-width: 600px;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    ul li {
+        margin-bottom: 10px;
+    }
+
+    ul li a {
+        text-decoration: none;
+        color: #007bff;
+    }
+
+    ul li a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="container mx-auto">
     <h2>Welcome, <?php echo htmlspecialchars($_SESSION['user']['name']); ?>!</h2>
     <p>Your role is: <?php echo htmlspecialchars($role); ?></p>
 

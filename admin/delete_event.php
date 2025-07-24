@@ -14,7 +14,7 @@ if (isset($_GET['id'])) {
     $id = (int) $_GET['id'];
 
     $stmt = $conn->prepare("DELETE FROM events WHERE id = ?");
-    $stmt->bind_param("i", $id);
+    $stmt->execute([$id]);
 
     if ($stmt->execute()) {
         header('Location: manage_events.php');

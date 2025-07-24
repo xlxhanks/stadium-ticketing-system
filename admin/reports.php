@@ -34,7 +34,57 @@ try {
 }
 ?>
 
-<div class="container mt-4">
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reports & Analytics</title>
+    <style>
+        body {
+            background-image: url('../assets/reports.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 80px auto;
+            padding: 30px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 12px;
+            box-shadow: 0 0 10px #000;
+        }
+
+        h2, h4 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .table th, .table td {
+            padding: 12px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ccc;
+            color: #fff;
+        }
+
+        .table-striped tbody tr:nth-child(odd) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
     <h2>Reports & Analytics</h2>
 
     <div class="mb-4">
@@ -66,3 +116,6 @@ try {
         <?php endif; ?>
     </div>
 </div>
+
+</body>
+</html>

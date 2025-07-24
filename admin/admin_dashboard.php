@@ -8,6 +8,23 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
     exit();
 } 
 ?>
+<style>
+    body {
+        background-image: url('../assets/admin_dashboard.jpg'); /* Adjust path as per your folder */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        min-height: 100vh;
+    }
+
+    .container {
+        background: rgba(255, 255, 255, 0.85); /* Optional: Make content readable */
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+</style>
+
 
 <div class="container">
     <?php if (isset($_SESSION['success'])): ?>

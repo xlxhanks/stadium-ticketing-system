@@ -39,10 +39,52 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 
-<h2>Make Payment for Order #<?= $order['id']; ?></h2>
-<p>Amount to Pay: $<?= number_format($order['total_amount'], 2); ?></p>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Make Payment</title>
+    <style>
+        body {
+            background-image: url('../assets/payment.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        .payment-container {
+            background-color: rgba(0, 0, 0, 0.6);
+            margin: 100px auto;
+            padding: 30px;
+            max-width: 500px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        button {
+            background-color: #28a745;
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
 
-<form method="POST" action="">
-    <input type="hidden" name="amount" value="<?= $order['total_amount']; ?>">
-    <button type="submit">Pay Now</button>
-</form>
+<div class="payment-container">
+    <h2>Make Payment for Order #<?= $order['id']; ?></h2>
+    <p>Amount to Pay: $<?= number_format($order['total_amount'], 2); ?></p>
+
+    <form method="POST" action="">
+        <input type="hidden" name="amount" value="<?= $order['total_amount']; ?>">
+        <button type="submit">Pay Now</button>
+    </form>
+</div>
+
+</body>
+</html>

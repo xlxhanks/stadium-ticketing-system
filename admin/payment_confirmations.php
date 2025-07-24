@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['payment_id'], $_POST[
 
             // If confirmed, update order status to 'paid'
             if ($new_status === 'confirmed') {
-                // Get order_id for this payment
                 $stmt = $conn->prepare("SELECT order_id FROM payments WHERE id = ?");
                 $stmt->execute([$payment_id]);
                 $order = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -61,56 +60,126 @@ try {
 }
 ?>
 
-<h2>Payment Confirmations</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Confirmations</title>
+    <style>
+        body {
+            background-image: url('../assets/payment.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #fff;
+        }
 
-<?php if (isset($_SESSION['success'])): ?>
-    <p style="color: green; font-weight: bold;"><?= htmlspecialchars($_SESSION['success']) ?></p>
-    <?php unset($_SESSION['success']); ?>
-<?php endif; ?>
+        .container {
+            max-width: 1000px;
+            margin: 50px auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px #000;
+        }
 
-<?php if (isset($_SESSION['error'])): ?>
-    <p style="color: red; font-weight: bold;"><?= htmlspecialchars($_SESSION['error']) ?></p>
-    <?php unset($_SESSION['error']); ?>
-<?php endif; ?>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
 
-<?php if (count($payments) > 0): ?>
-    <table border="1" cellpadding="8" cellspacing="0">
-        <tr>
-            <th>User</th>
-            <th>Order ID</th>
-            <th>Amount Paid</th>
-            <th>Payment Status</th>
-            <th>Order Status</th>
-            <th>Payment Date</th>
-            <th>Actions</th>
-        </tr>
-        <?php foreach ($payments as $payment): ?>
+        th, td {
+            padding: 12px;
+            border: 1px solid #ccc;
+        }
+
+        th {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        button {
+            padding: 6px 10px;
+            background-color: #28a745;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        em {
+            color: #ccc;
+        }
+
+        p {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Payment Confirmations</h2>
+
+    <?php if (isset($_SESSION['success'])): ?>
+        <p style="color: lightgreen;"><?= htmlspecialchars($_SESSION['success']) ?></p>
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['error'])): ?>
+        <p style="color: red;"><?= htmlspecialchars($_SESSION['error']) ?></p>
+        <?php unset($_SESSION['error']); ?>
+    <?php endif; ?>
+
+    <?php if (count($payments) > 0): ?>
+        <table>
             <tr>
-                <td><?= htmlspecialchars($payment['username']); ?></td>
-                <td><?= htmlspecialchars($payment['order_id']); ?></td>
-                <td>$<?= number_format($payment['amount'], 2); ?></td>
-                <td><?= htmlspecialchars($payment['payment_status']); ?></td>
-                <td><?= htmlspecialchars($payment['order_status']); ?></td>
-                <td><?= htmlspecialchars($payment['payment_date']); ?></td>
-                <td>
-                    <?php if ($payment['payment_status'] === 'pending'): ?>
-                        <form method="POST" action="payment_confirmations.php" style="display:inline;">
-                            <input type="hidden" name="payment_id" value="<?= $payment['id'] ?>">
-                            <input type="hidden" name="new_status" value="confirmed">
-                            <button type="submit" onclick="return confirm('Are you sure you want to approve this payment?')">Approve</button>
-                        </form>
-                        <form method="POST" action="payment_confirmations.php" style="display:inline; margin-left:5px;">
-                            <input type="hidden" name="payment_id" value="<?= $payment['id'] ?>">
-                            <input type="hidden" name="new_status" value="rejected">
-                            <button type="submit" onclick="return confirm('Are you sure you want to reject this payment?')">Reject</button>
-                        </form>
-                    <?php else: ?>
-                        <em>No actions available</em>
-                    <?php endif; ?>
-                </td>
+                <th>User</th>
+                <th>Order ID</th>
+                <th>Amount Paid</th>
+                <th>Payment Status</th>
+                <th>Order Status</th>
+                <th>Payment Date</th>
+                <th>Actions</th>
             </tr>
-        <?php endforeach; ?>
-    </table>
-<?php else: ?>
-    <p>No payments recorded yet.</p>
-<?php endif; ?>
+            <?php foreach ($payments as $payment): ?>
+                <tr>
+                    <td><?= htmlspecialchars($payment['username']); ?></td>
+                    <td><?= htmlspecialchars($payment['order_id']); ?></td>
+                    <td>$<?= number_format($payment['amount'], 2); ?></td>
+                    <td><?= htmlspecialchars($payment['payment_status']); ?></td>
+                    <td><?= htmlspecialchars($payment['order_status']); ?></td>
+                    <td><?= htmlspecialchars($payment['payment_date']); ?></td>
+                    <td>
+                        <?php if ($payment['payment_status'] === 'pending'): ?>
+                            <form method="POST" action="payment_confirmations.php" style="display:inline;">
+                                <input type="hidden" name="payment_id" value="<?= $payment['id'] ?>">
+                                <input type="hidden" name="new_status" value="confirmed">
+                                <button type="submit" onclick="return confirm('Are you sure you want to approve this payment?')">Approve</button>
+                            </form>
+                            <form method="POST" action="payment_confirmations.php" style="display:inline; margin-left:5px;">
+                                <input type="hidden" name="payment_id" value="<?= $payment['id'] ?>">
+                                <input type="hidden" name="new_status" value="rejected">
+                                <button type="submit" onclick="return confirm('Are you sure you want to reject this payment?')" style="background-color:#dc3545;">Reject</button>
+                            </form>
+                        <?php else: ?>
+                            <em>No actions available</em>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </table>
+    <?php else: ?>
+        <p>No payments recorded yet.</p>
+    <?php endif; ?>
+</div>
+
+</body>
+</html>

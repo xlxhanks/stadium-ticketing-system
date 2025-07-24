@@ -13,7 +13,7 @@ if (!isset($_GET['event_id'])) {
     exit();
 }
 
-$event_id = (int) $_GET['event_id'];
+$event_id = $_GET['event_id'];
 
 // Fetch event details
 try {
@@ -66,18 +66,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['selected_seats'])) {
 }
 ?>
 
-<h2>Book Tickets for <?= htmlspecialchars($event['title']); ?></h2>
-<p>Date: <?= htmlspecialchars($event['date']); ?></p>
-<p>Price per Ticket: $<?= number_format($event['price_per_ticket'], 2); ?></p>
+<!-- Background container -->
+<div style="
+    background-image: url('../assets/book_tickets.jpg');
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+    padding: 40px;
+    color: #fff;
+">
 
-<form method="POST" action="">
-    <p>Select Seats:</p>
-    <?php foreach ($availableSeats as $seat): ?>
-        <label>
-            <input type="checkbox" name="selected_seats[]" value="<?= htmlspecialchars($seat); ?>"> <?= htmlspecialchars($seat); ?>
-        </label><br>
-    <?php endforeach; ?>
+    <div style="background-color: rgba(0, 0, 0, 0.6); padding: 20px; border-radius: 10px; max-width: 600px; margin: auto;">
+        <h2>Book Tickets for <?= htmlspecialchars($event['title']); ?></h2>
+        <p>Date: <?= htmlspecialchars($event['date']); ?></p>
+        <p>Price per Ticket: $<?= number_format($event['price_per_ticket'], 2); ?></p>
 
-    <br>
-    <button type="submit">Add to Cart</button>
-</form>
+        <form method="POST" action="">
+            <p>Select Seats:</p>
+            <?php foreach ($availableSeats as $seat): ?>
+                <label>
+                    <input type="checkbox" name="selected_seats[]" value="<?= htmlspecialchars($seat); ?>">
+                    <?= htmlspecialchars($seat); ?>
+                </label><br>
+            <?php endforeach; ?>
+
+            <br>
+            <button type="submit" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px;">Add to Cart</button>
+        </form>
+    </div>
+</div>

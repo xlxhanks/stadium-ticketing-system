@@ -54,10 +54,16 @@ try {
 
     // Empty cart
     $_SESSION['cart'] = [];
+    ?>
 
-    echo "<h2>Checkout Successful!</h2>";
-    echo "<p>Your order has been placed successfully.</p>";
-    echo '<a href="view_orders.php"><button>View My Orders</button></a>';
+    <!-- HTML Output with Background -->
+    <div style="background-image: url('../assets/checkout.jpg'); background-size: cover; background-position: center; padding: 50px; color: white; min-height: 100vh;">
+        <h2>Checkout Successful!</h2>
+        <p>Your order has been placed successfully.</p>
+        <a href="view_orders.php"><button>View My Orders</button></a>
+    </div>
+
+    <?php
 
 } catch (Exception $e) {
     $conn->rollBack();
