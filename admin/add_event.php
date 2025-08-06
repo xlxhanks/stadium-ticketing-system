@@ -1,26 +1,26 @@
 <?php
 session_start();
-include __DIR__ . '/../root/db_connect.php';
-include '../root/navbar.php';
 
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
     header('Location: ../auth/login.php');
     exit();
 }
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+require __DIR__ . '/../root/db_connect.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = htmlspecialchars(trim($_POST['title']));
     $description = htmlspecialchars(trim($_POST['description']));
-    $venue = htmlspecialchars(trim($_POST['venue']));
+    $stadium_id = (int) $_POST['stadium_id'];
     $category = htmlspecialchars(trim($_POST['category']));
     $event_date = $_POST['event_date'];
     $price = (float) $_POST['price'];
     $tickets = (int) $_POST['tickets'];
 
     try {
-        $stmt = $conn->prepare("INSERT INTO events (title, description, venue, category, date, price_per_ticket, tickets_available, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'active')");
-        $stmt->execute([$title, $description, $venue, $category, $event_date, $price, $tickets]);
+        $stmt = $conn->prepare("INSERT INTO events (title, description, stadium_id, category, date, price_per_ticket, tickets_available, status) 
+                                VALUES (?, ?, ?, ?, ?, ?, ?, 'active')");
+        $stmt->execute([$title, $description, $stadium_id, $category, $event_date, $price, $tickets]);
 
         $_SESSION['success'] = "Event added successfully!";
         header('Location: manage_events.php');
@@ -33,6 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 
+<!-- HTML starts here -->
+<?php include '../root/navbar.php'; ?>
+
+<!-- Your add event form HTML goes below as usual -->
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -108,8 +113,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <input type="number" name="tickets" class="form-control" placeholder="Total Tickets Available" required>
         </div>
         <div class="mb-3">
-            <input type="text" name="venue" class="form-control" placeholder="Venue" required>
+         <label for="stadium_id">Choose Stadium:</label>
+         <select name="stadium_id" class="form-select" required>
+          <?php
+            $stadiums = $conn->query("SELECT id, name FROM stadiums");
+            while ($s = $stadiums->fetch(PDO::FETCH_ASSOC)) {
+               echo "<option value='{$s['id']}'>{$s['name']}</option>";
+           }
+          ?>
+         </select>
         </div>
+        
         <div class="mb-3">
             <input type="text" name="category" class="form-control" placeholder="Category" required>
         </div>

@@ -10,7 +10,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
 
 // Fetch events
 try {
-    $stmt = $conn->query("SELECT * FROM events ORDER BY date DESC");
+    $stmt = $conn->query("SELECT e.*, s.name AS stadium_name FROM events e JOIN stadiums s ON e.stadium_id = s.id ORDER BY date DESC");
     $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     echo "Error fetching events: " . $e->getMessage();
@@ -84,6 +84,7 @@ try {
                     <th>Event Date</th>
                     <th>Price</th>
                     <th>Tickets</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -92,10 +93,11 @@ try {
                     <tr>
                         <td><?= htmlspecialchars($event['title'] ?? ''); ?></td>
                         <td><?= htmlspecialchars($event['category'] ?? ''); ?></td>
-                        <td><?= htmlspecialchars($event['venue'] ?? ''); ?></td>
-                        <td><?= htmlspecialchars($event['date'] ?? ''); ?></td>
-                        <td>$<?= htmlspecialchars($event['price_per_ticket'] ?? '0.00'); ?></td>
+                        <td><?= htmlspecialchars($event['stadium_name'] ?? ''); ?></td>
+                        <td><?= date('D, M j Y - H:i', strtotime($event['date'] ?? '')) ?></td>
+                        <td><?= htmlspecialchars($event['price_per_ticket'] ?? '0.00'); ?></td>
                         <td><?= htmlspecialchars($event['tickets_available'] ?? '0'); ?></td>
+                        <td><?= htmlspecialchars($event['status'] ?? ''); ?></td>
                         <td>
                           <a href="edit_event.php?id=<?= $event['id']; ?>" class="btn btn-warning btn-sm">Edit</a>
                           <a href="delete_event.php?id=<?= $event['id']; ?>" class="btn btn-danger btn-sm" 

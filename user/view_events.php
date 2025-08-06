@@ -10,7 +10,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'user') {
 
 // Fetch active events
 try {
-    $stmt = $conn->query("SELECT * FROM events WHERE status = 'active' ORDER BY date DESC");
+    $stmt = $conn->query("SELECT e.*, s.name AS stadium_name FROM events e JOIN stadiums s ON e.stadium_id = s.id ORDER BY date DESC");
     $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     echo "Error fetching events: " . $e->getMessage();
@@ -91,6 +91,9 @@ try {
                 <th>Title</th>
                 <th>Description</th>
                 <th>Date</th>
+                <th>Venue</th>
+                <th>Category</th>
+                <th>Status</th>
                 <th>Price</th>
                 <th>Tickets Available</th>
                 <th>Action</th>
@@ -100,6 +103,9 @@ try {
                     <td><?= htmlspecialchars($event['title']); ?></td>
                     <td><?= htmlspecialchars($event['description']); ?></td>
                     <td><?= htmlspecialchars($event['date']); ?></td>
+                    <td><?= htmlspecialchars($event['stadium_name']); ?></td>
+                    <td><?= htmlspecialchars($event['category']); ?></td>
+                    <td><?= htmlspecialchars($event['status']); ?></td>
                     <td>$<?= number_format($event['price_per_ticket'], 2); ?></td>
                     <td><?= (int)$event['tickets_available']; ?></td>
                     <td>

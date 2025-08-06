@@ -1,7 +1,7 @@
 <?php
 session_start();
 include __DIR__ . '/../root/db_connect.php';
-include '../root/navbar.php';
+
 
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
     header('Location: ../auth/login.php');
@@ -58,7 +58,9 @@ try {
     echo "Error fetching payments: " . $e->getMessage();
     exit();
 }
+include '../root/navbar.php';
 ?>
+
 
 <!DOCTYPE html>
 <html>

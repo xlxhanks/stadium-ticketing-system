@@ -6,11 +6,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = htmlspecialchars(trim($_POST['name']));
     $email = htmlspecialchars(trim($_POST['email']));
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $phone = trim($_POST['phone']);
     $role = 'user';
 
+    if (!preg_match('/^07\d{8}$/', $phone)) {
+    $_SESSION['error'] = "Invalid phone number. Use format 07XXXXXXXX";
+    header('Location: register.php');
+    exit();
+}
+
+
     try {
-        $stmt = $conn->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$name, $email, $password, $role]);
+        $stmt = $conn->prepare("INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, 'user')");
+        $stmt->execute([$name, $email, $password, $phone]);
 
         $_SESSION['success'] = "Registration successful! Please login.";
         header('Location: login.php');
@@ -94,6 +102,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <input type="text" name="name" placeholder="Full Name" required><br>
         <input type="email" name="email" placeholder="Email Address" required><br>
         <input type="password" name="password" placeholder="Password" required><br>
+        <div class="mb-3">
+         <input type="text" name="phone" placeholder="Phone Number" class="form-control" required pattern="\d{10}" placeholder="07XXXXXXXX">
+        </div>
         <button type="submit">Register</button>
     </form>
 </div>

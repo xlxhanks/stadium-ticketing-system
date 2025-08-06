@@ -1,12 +1,12 @@
 <?php
 session_start();
-include __DIR__ . '/../root/db_connect.php';
-include '../root/navbar.php';
 
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'user') {
     header('Location: ../auth/login.php');
     exit();
 }
+
+require __DIR__ . '/../root/db_connect.php';
 
 if (!isset($_GET['event_id'])) {
     echo "No event selected.";
@@ -15,9 +15,8 @@ if (!isset($_GET['event_id'])) {
 
 $event_id = $_GET['event_id'];
 
-// Fetch event details
 try {
-    $stmt = $conn->prepare("SELECT * FROM events WHERE id = ?");
+    $stmt = $conn->prepare("SELECT e.*, s.capacity FROM events e JOIN stadiums s ON e.stadium_id = s.id WHERE e.id = ?");
     $stmt->execute([$event_id]);
     $event = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -26,72 +25,124 @@ try {
         exit();
     }
 
-    // Available seats logic — generate dummy seats if none
-    $totalSeats = 100;  // Change this as per capacity
-    $bookedSeats = [];
+    $capacity = (int) $event['capacity'];
 
     $stmtSeats = $conn->prepare("SELECT seat_number FROM tickets WHERE event_id = ?");
     $stmtSeats->execute([$event_id]);
-    $bookedSeatsResult = $stmtSeats->fetchAll(PDO::FETCH_ASSOC);
+    $bookedSeats = array_column($stmtSeats->fetchAll(PDO::FETCH_ASSOC), 'seat_number');
 
-    foreach ($bookedSeatsResult as $bs) {
-        $bookedSeats[] = $bs['seat_number'];
-    }
+    function generateAllSeats($capacity) {
+        $rows = range('A', 'Z');
+        $maxRow = min(ceil($capacity / 50), count($rows));
+        $seatRows = array_slice($rows, 0, $maxRow);
+        $seatNumbers = range(1, 50);
 
-    $availableSeats = [];
-    for ($i = 1; $i <= $totalSeats; $i++) {
-        $seatLabel = 'S' . str_pad($i, 3, '0', STR_PAD_LEFT);
-        if (!in_array($seatLabel, $bookedSeats)) {
-            $availableSeats[] = $seatLabel;
+        $seats = [];
+        foreach ($seatRows as $row) {
+            foreach ($seatNumbers as $num) {
+                $seat = $row . str_pad($num, 2, '0', STR_PAD_LEFT);
+                $seats[] = $seat;
+                if (count($seats) >= $capacity) break 2;
+            }
         }
+        return $seats;
     }
+
+    $allSeats = generateAllSeats($capacity);
+    $availableSeats = array_diff($allSeats, $bookedSeats);
+
+    function groupSeatRanges($seats) {
+        sort($seats);
+        $ranges = [];
+        $start = $prev = null;
+
+        foreach ($seats as $seat) {
+            if (!$start) {
+                $start = $seat;
+                $prev = $seat;
+                continue;
+            }
+            $expected = $prev[0] . str_pad((int)substr($prev, 1) + 1, 2, '0', STR_PAD_LEFT);
+            if ($seat === $expected) {
+                $prev = $seat;
+            } else {
+                $ranges[] = ($start === $prev) ? $start : "$start-$prev";
+                $start = $seat;
+                $prev = $seat;
+            }
+        }
+        if ($start) {
+            $ranges[] = ($start === $prev) ? $start : "$start-$prev";
+        }
+        return $ranges;
+    }
+
+    $bookedRanges = groupSeatRanges($bookedSeats);
+    $availableRanges = groupSeatRanges($availableSeats);
 
 } catch (PDOException $e) {
-    echo "Error fetching event: " . $e->getMessage();
+    echo "Error: " . $e->getMessage();
     exit();
 }
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['selected_seats'])) {
-    $selectedSeats = $_POST['selected_seats'];
-
-    if (!isset($_SESSION['cart'])) {
-        $_SESSION['cart'] = [];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['seats']) && is_array($_POST['seats'])) {
+    $validSeats = [];
+    foreach ($_POST['seats'] as $seatInput) {
+        $seat = strtoupper(trim($seatInput));
+        if (!preg_match('/^[A-Z]\d{2}$/', $seat)) continue;
+        if (!in_array($seat, $allSeats)) continue;
+        if (in_array($seat, $bookedSeats)) continue;
+        $validSeats[] = $seat;
     }
 
-    $_SESSION['cart'][$event_id] = $selectedSeats;
+    if (empty($validSeats)) {
+        $_SESSION['error'] = "No valid or available seats selected.";
+        header("Location: book_tickets.php?event_id=$event_id");
+        exit();
+    }
 
-    header('Location: cart.php');
+    foreach ($validSeats as $seat) {
+        $_SESSION['cart'][$event_id][] = $seat;
+    }
+    header("Location: cart.php");
     exit();
 }
 ?>
 
-<!-- Background container -->
-<div style="
-    background-image: url('../assets/book_tickets.jpg');
-    background-size: cover;
-    background-position: center;
-    min-height: 100vh;
-    padding: 40px;
-    color: #fff;
-">
+<?php include '../root/navbar.php'; ?>
 
-    <div style="background-color: rgba(0, 0, 0, 0.6); padding: 20px; border-radius: 10px; max-width: 600px; margin: auto;">
-        <h2>Book Tickets for <?= htmlspecialchars($event['title']); ?></h2>
-        <p>Date: <?= htmlspecialchars($event['date']); ?></p>
-        <p>Price per Ticket: $<?= number_format($event['price_per_ticket'], 2); ?></p>
+<div style="background-image: url('../assets/book_tickets.jpg'); background-size: cover; background-position: center; min-height: 100vh; padding: 40px; color: #fff;">
+  <div style="background-color: rgba(0, 0, 0, 0.7); padding: 20px; border-radius: 10px; max-width: 700px; margin: auto;">
+    <h2>Book Tickets for <?= htmlspecialchars($event['title']); ?></h2>
+    <p>Date: <?= htmlspecialchars($event['date']); ?></p>
+    <p>Stadium Capacity: <?= $event['capacity']; ?> seats</p>
+    <p>Price per Ticket: $<?= number_format($event['price_per_ticket'], 2); ?></p>
 
-        <form method="POST" action="">
-            <p>Select Seats:</p>
-            <?php foreach ($availableSeats as $seat): ?>
-                <label>
-                    <input type="checkbox" name="selected_seats[]" value="<?= htmlspecialchars($seat); ?>">
-                    <?= htmlspecialchars($seat); ?>
-                </label><br>
-            <?php endforeach; ?>
+    <?php if (!empty($_SESSION['error'])): ?>
+      <div class="alert alert-danger mt-3"><?= $_SESSION['error']; unset($_SESSION['error']); ?></div>
+    <?php endif; ?>
 
-            <br>
-            <button type="submit" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px;">Add to Cart</button>
-        </form>
+    <div class="mb-3 mt-4">
+      <strong><?= count($bookedSeats); ?></strong> seats booked.<br>
+      <strong><?= count($availableSeats); ?></strong> seats available.
     </div>
+
+    <h5>Booked Seat Ranges:</h5>
+    <div style="background: #fff; color: #000; padding: 10px; border-radius: 5px;">
+      <?= empty($bookedRanges) ? 'None yet!' : implode(', ', $bookedRanges); ?>
+    </div>
+
+    <h5 class="mt-3">Available Seat Ranges:</h5>
+    <div style="background: #fff; color: #000; padding: 10px; border-radius: 5px;">
+      <?= empty($availableRanges) ? 'None available.' : implode(', ', $availableRanges); ?>
+    </div>
+
+    <form method="POST" action="" class="mt-4">
+      <label for="seats">Enter Seat Numbers (e.g. A01, B12):</label>
+      <input type="text" name="seats[]" class="form-control mb-2" placeholder="A01" required>
+      <input type="text" name="seats[]" class="form-control mb-2" placeholder="B12">
+      <input type="text" name="seats[]" class="form-control mb-2" placeholder="C05">
+      <button type="submit" class="btn btn-success w-100">Add to Cart</button>
+    </form>
+  </div>
 </div>

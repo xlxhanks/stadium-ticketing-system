@@ -1,7 +1,5 @@
 <?php
 session_start();
-include __DIR__ . '/../root/db_connect.php';
-include '../root/navbar.php';
 
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
     header('Location: ../auth/login.php');
@@ -13,32 +11,31 @@ if (!isset($_GET['id'])) {
     exit();
 }
 
+require __DIR__ . '/../root/db_connect.php';
 $id = (int) $_GET['id'];
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = htmlspecialchars(trim($_POST['title']));
     $description = htmlspecialchars(trim($_POST['description']));
     $event_date = $_POST['event_date'];
-    $venue = htmlspecialchars(trim($_POST['venue']));
+    $stadium_id = (int) $_POST['stadium_id'];
     $tickets = (int) $_POST['tickets'];
     $price = (float) $_POST['price'];
     $category = htmlspecialchars(trim($_POST['category']));
     $status = htmlspecialchars(trim($_POST['status']));
 
     try {
-        $stmt = $conn->prepare("
-            UPDATE events 
-            SET title = ?, description = ?, date = ?, venue = ?, tickets_available = ?, price_per_ticket = ?, category = ?, status = ?
-            WHERE id = ?
-        ");
-        $stmt->execute([$title, $description, $event_date, $venue, $tickets, $price, $category, $status, $id]);
+        $stmt = $conn->prepare("UPDATE events 
+                                SET title = ?, description = ?, date = ?, stadium_id = ?, tickets_available = ?, price_per_ticket = ?, category = ?, status = ?
+                                WHERE id = ?");
+        $stmt->execute([$title, $description, $event_date, $stadium_id, $tickets, $price, $category, $status, $id]);
 
         $_SESSION['success'] = "Event updated successfully!";
         header('Location: manage_events.php');
         exit();
-
     } catch (PDOException $e) {
-        echo "Error updating event: " . $e->getMessage();
+        $_SESSION['error'] = "Error updating event: " . $e->getMessage();
+        header("Location: edit_event.php?id=$id");
         exit();
     }
 }
@@ -52,13 +49,16 @@ try {
         echo "Event not found!";
         exit();
     }
-
 } catch (PDOException $e) {
     echo "Error fetching event: " . $e->getMessage();
     exit();
 }
 ?>
 
+<!-- HTML starts here -->
+<?php include '../root/navbar.php'; ?>
+
+<!-- Your edit event form HTML goes below as usual -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -103,7 +103,16 @@ try {
         </div>
 
         <div class="mb-3">
-            <input type="text" name="venue" class="form-control" value="<?= htmlspecialchars($event['venue'] ?? ''); ?>" required>
+           <label for="stadium_id">Venue:</label>
+           <select name="stadium_id" class="form-select" required>
+             <?php
+              $stadiums = $conn->query("SELECT id, name FROM stadiums");
+              while ($s = $stadiums->fetch(PDO::FETCH_ASSOC)) {
+                $selected = $s['id'] == $event['stadium_id'] ? 'selected' : '';
+                echo "<option value='{$s['id']}' $selected>{$s['name']}</option>";
+              }
+            ?>
+            </select>
         </div>
 
         <div class="mb-3">

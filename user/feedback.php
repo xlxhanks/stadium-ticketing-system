@@ -1,7 +1,7 @@
 <?php
 session_start();
 include __DIR__ . '/../root/db_connect.php';
-include '../root/navbar.php';
+
 
 if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'user') {
     header('Location: ../auth/login.php');
@@ -31,18 +31,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['event_id'], $_POST['co
 
 // Fetch user’s events (to give feedback)
 try {
-    $stmt = $conn->prepare("
-        SELECT DISTINCT events.id, events.title 
-        FROM tickets 
-        JOIN events ON tickets.event_id = events.id 
-        WHERE tickets.user_id = ?
-    ");
+    $stmt = $conn->prepare("SELECT id, title FROM events ORDER BY title");
     $stmt->execute([$user_id]);
     $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     echo "Error fetching events: " . $e->getMessage();
     exit();
 }
+include '../root/navbar.php';
 ?>
 
 <!DOCTYPE html>

@@ -152,6 +152,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="radio" name="payment_method" value="mpesa" <?= (isset($_POST['payment_method']) && $_POST['payment_method'] === 'mpesa') ? 'checked' : '' ?>>
             M-Pesa
         </label>
+        <input type="text" name="phone" class="form-control"
+       value="<?= htmlspecialchars($_SESSION['user']['phone'] ?? '') ?>" required>
+
         <label>
             <input type="radio" name="payment_method" value="paypal" <?= (isset($_POST['payment_method']) && $_POST['payment_method'] === 'paypal') ? 'checked' : '' ?>>
             PayPal
